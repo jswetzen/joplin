@@ -1,4 +1,5 @@
 package net.cozic.joplin
+import net.cozic.joplin.fork.BuildConfig
 import expo.modules.ReactActivityDelegateWrapper
 
 import com.facebook.react.ReactActivity

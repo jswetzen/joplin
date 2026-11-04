@@ -1,4 +1,5 @@
 package net.cozic.joplin
+import net.cozic.joplin.fork.BuildConfig
 import android.content.res.Configuration
 import expo.modules.ApplicationLifecycleDispatcher
 import expo.modules.ExpoReactHostFactory
