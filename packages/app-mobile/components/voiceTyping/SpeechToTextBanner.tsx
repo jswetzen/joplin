@@ -98,32 +98,46 @@ const useVoiceTyping = ({ locale, onSetPreview, onText }: UseVoiceTypingProps) =
 	}, [builder]);
 
 	return {
-		error, mustDownloadModel, stoppingSession, voiceTyping, onRequestRedownload,
+		error,
+		mustDownloadModel,
+		stoppingSession,
+		voiceTyping,
+		onRequestRedownload,
+		requiresModelDownload: builder.requiresModelDownload,
+		recordingNotice: builder.recordingNotice(),
 	};
 };
 
 const SpeechToTextComponent: React.FC<Props> = props => {
 	const [recorderState, setRecorderState] = useState<RecorderState>(RecorderState.Loading);
 	const [preview, setPreview] = useState<string>('');
+	const [sessionError, setSessionError] = useState<Error|null>(null);
 	const {
 		error: modelError,
 		mustDownloadModel,
 		voiceTyping,
 		stoppingSession,
 		onRequestRedownload,
+		requiresModelDownload,
+		recordingNotice,
 	} = useVoiceTyping({
 		locale: props.locale,
 		onSetPreview: setPreview,
 		onText: props.onText,
 	});
+	const error = sessionError ?? modelError;
 
 	useEffect(() => {
-		if (modelError) {
+		setSessionError(null);
+	}, [voiceTyping]);
+
+	useEffect(() => {
+		if (error) {
 			setRecorderState(RecorderState.Error);
 		} else if (voiceTyping) {
 			setRecorderState(RecorderState.Recording);
 		}
-	}, [voiceTyping, modelError]);
+	}, [voiceTyping, error]);
 
 	useEffect(() => {
 		if (mustDownloadModel) {
@@ -139,14 +153,26 @@ const SpeechToTextComponent: React.FC<Props> = props => {
 
 	useEffect(() => {
 		if (recorderState === RecorderState.Recording) {
-			void voiceTyping.start();
+			void (async () => {
+				try {
+					await voiceTyping.start();
+				} catch (error) {
+					setSessionError(error);
+				}
+			})();
 		}
 	}, [recorderState, voiceTyping, props.onText]);
 
 	const onDismiss = useCallback(async () => {
 		if (voiceTyping) {
 			setRecorderState(RecorderState.Processing);
-			await voiceTyping.stop();
+			try {
+				await voiceTyping.stop();
+			} catch (error) {
+				// Keep the banner open so that the error is visible. Pressing "Done" again closes it.
+				setSessionError(error);
+				return;
+			}
 			setRecorderState(RecorderState.Idle);
 		}
 		props.onDismiss();
@@ -156,12 +182,12 @@ const SpeechToTextComponent: React.FC<Props> = props => {
 		const components: Record<RecorderState, ()=> string> = {
 			[RecorderState.Loading]: () => _('Loading...'),
 			[RecorderState.Idle]: () => 'Waiting...', // Not used for now
-			[RecorderState.Recording]: () => _('Please record your voice...'),
+			[RecorderState.Recording]: () => [_('Please record your voice...'), recordingNotice].filter(Boolean).join('\n'),
 			[RecorderState.Processing]: () => (
 				stoppingSession ? _('Closing session...') : _('Converting speech to text...')
 			),
 			[RecorderState.Downloading]: () => _('Downloading %s language files...', languageName(props.locale)),
-			[RecorderState.Error]: () => _('Error: %s', modelError?.message),
+			[RecorderState.Error]: () => _('Error: %s', error?.message),
 		};
 
 		return components[recorderState]();
@@ -182,7 +208,7 @@ const SpeechToTextComponent: React.FC<Props> = props => {
 	>
 		{_('Re-download model')}
 	</Button>;
-	const allowReDownload = recorderState === RecorderState.Error;
+	const allowReDownload = recorderState === RecorderState.Error && requiresModelDownload;
 
 	const actions = <>
 		{allowReDownload ? reDownloadButton : null}

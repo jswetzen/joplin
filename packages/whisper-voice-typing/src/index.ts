@@ -3,7 +3,7 @@ import type { AudioRecorder, SessionOptions, WhisperSession, WhisperVoiceTyping 
 
 let WhisperVoiceTypingHybridObject: WhisperVoiceTyping|null = null;
 
-export type { SessionOptions };
+export type { SessionOptions, AudioRecorder };
 
 const getVoiceTyping = () => {
 	WhisperVoiceTypingHybridObject ??= NitroModules.createHybridObject<WhisperVoiceTyping>('WhisperVoiceTyping');
@@ -70,6 +70,11 @@ export class Session {
 
 export function openSession(options: SessionOptions) {
 	return new Session(options);
+}
+
+// Records 16 kHz mono audio. pullAvailable() returns float32 samples in native byte order.
+export function createAudioRecorder() {
+	return NitroModules.createHybridObject<AudioRecorder>('AudioRecorder');
 }
 
 export function test() {

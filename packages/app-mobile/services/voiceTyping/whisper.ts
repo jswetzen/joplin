@@ -5,8 +5,9 @@ import { rtrimSlashes } from '@joplin/utils/path';
 import { dirname, join } from 'path';
 import { openSession, test as testWhisper, Session as WhisperSession } from '@joplin/whisper-voice-typing';
 import { SpeechToTextCallbacks, VoiceTypingProvider, VoiceTypingSession } from './VoiceTyping';
-import { languageCodeOnly, stringByLocale } from '@joplin/lib/locale';
+import { languageCodeOnly } from '@joplin/lib/locale';
 import { Platform } from 'react-native';
+import getGlossaryPrompt from './utils/getGlossaryPrompt';
 
 const logger = Logger.create('voiceTyping/whisper');
 
@@ -177,24 +178,6 @@ class Whisper implements VoiceTypingSession {
 	}
 }
 
-const getGlossaryPrompt = (locale: string) => {
-	const glossary = Setting.value('voiceTyping.glossary');
-	if (!glossary) return '';
-
-	// Re-define the "_" localization function so that it uses the transcription locale (as opposed to the UI locale).
-	const _ = (text: string) => {
-		return stringByLocale(locale, text);
-	};
-	let glossaryPrefix = _('Glossary:');
-
-	// Prefer no prefix if no appropriate translation of "Glossary:" is available:
-	if (glossaryPrefix === 'Glossary:' && languageCodeOnly(locale) !== 'en') {
-		glossaryPrefix = '';
-	}
-
-	return `${glossaryPrefix} ${glossary}`.trim();
-};
-
 const getPrompt = (locale: string, localeToPrompt: Map<string, string>) => {
 	const basePrompt = localeToPrompt.get(languageCodeOnly(locale));
 	return [
@@ -213,6 +196,7 @@ const modelLocalFilepath = () => {
 
 const whisper: VoiceTypingProvider = {
 	supported: () => Platform.OS === 'android' && Setting.value('buildFlag.voiceTypingEnabled'),
+	requiresModelDownload: true,
 	modelLocalFilepath: modelLocalFilepath,
 	getDownloadUrl: (locale) => {
 		const lang = languageCodeOnly(locale).toLowerCase();

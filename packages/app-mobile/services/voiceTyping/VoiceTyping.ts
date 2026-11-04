@@ -29,11 +29,16 @@ export interface BuildProviderOptions {
 
 export interface VoiceTypingProvider {
 	modelName: string;
+	// False for providers that don't transcribe on-device and so have no model to download.
+	requiresModelDownload: boolean;
+	// Should also check the voice typing settings: VoiceTyping uses the first supported provider.
 	supported(): boolean;
 	modelLocalFilepath(locale: string): string;
 	deleteCachedModels(locale: string): Promise<void>;
 	getDownloadUrl(locale: string): string;
 	getUuidPath(locale: string): string;
+	// Shown while recording, for example to say where audio is being sent.
+	recordingNotice?(): string;
 	build(options: BuildProviderOptions): Promise<VoiceTypingSession>;
 }
 
@@ -50,6 +55,14 @@ export default class VoiceTyping {
 
 	public static supported() {
 		return this.providers_.some(p => p.supported());
+	}
+
+	public get requiresModelDownload() {
+		return this.provider?.requiresModelDownload ?? true;
+	}
+
+	public recordingNotice() {
+		return this.provider?.recordingNotice?.() ?? '';
 	}
 
 	private getModelPath() {
@@ -72,6 +85,8 @@ export default class VoiceTyping {
 	}
 
 	public async isDownloadedFromOutdatedUrl() {
+		if (!this.requiresModelDownload) return false;
+
 		const uuidPath = this.getUuidPath();
 		if (!await shim.fsDriver().exists(uuidPath)) {
 			// Not downloaded at all
@@ -84,14 +99,18 @@ export default class VoiceTyping {
 	}
 
 	public async isDownloaded() {
+		if (!this.requiresModelDownload) return true;
 		return await shim.fsDriver().exists(this.getUuidPath());
 	}
 
 	public async clearDownloads() {
+		if (!this.requiresModelDownload) return;
 		await this.provider.deleteCachedModels(this.locale);
 	}
 
 	public async download() {
+		if (!this.requiresModelDownload) return;
+
 		const modelPath = this.getModelPath();
 		const modelUrl = this.provider.getDownloadUrl(this.locale);
 
@@ -154,7 +173,7 @@ export default class VoiceTyping {
 
 		return this.provider.build({
 			locale: this.locale,
-			modelPath: this.getModelPath(),
+			modelPath: this.requiresModelDownload ? this.getModelPath() : '',
 			callbacks,
 		});
 	}
