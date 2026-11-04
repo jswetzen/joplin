@@ -939,6 +939,7 @@ packages/app-mobile/components/screens/ConfigScreen/SettingsButton.js
 packages/app-mobile/components/screens/ConfigScreen/SettingsToggle.js
 packages/app-mobile/components/screens/ConfigScreen/ValidatedIntegerInput.test.js
 packages/app-mobile/components/screens/ConfigScreen/ValidatedIntegerInput.js
+packages/app-mobile/components/screens/ConfigScreen/VoiceTypingRemoteConfig.js
 packages/app-mobile/components/screens/ConfigScreen/configScreenStyles.js
 packages/app-mobile/components/screens/ConfigScreen/plugins/EnablePluginSupportPage.js
 packages/app-mobile/components/screens/ConfigScreen/plugins/InstalledPluginBox.js
@@ -1082,6 +1083,7 @@ packages/app-mobile/services/voiceTyping/utils/unzip.android.js
 packages/app-mobile/services/voiceTyping/utils/unzip.js
 packages/app-mobile/services/voiceTyping/whisper.test.js
 packages/app-mobile/services/voiceTyping/whisper.js
+packages/app-mobile/services/voiceTyping/whisperRemote.js
 packages/app-mobile/setupQuickActions.js
 packages/app-mobile/tools/buildInjectedJs/BundledFile.js
 packages/app-mobile/tools/buildInjectedJs/constants.js

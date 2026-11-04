@@ -22,6 +22,9 @@ const showVoiceTypingSettings = (settings: VoiceTypingSettingSlice) => (
 	// For now, iOS and web don't support voice typing.
 	shim.mobilePlatform() === 'android' && !!settings['buildFlag.voiceTypingEnabled']
 );
+const showVoiceTypingBackendSettings = (backend: string) => (settings: VoiceTypingSettingSlice & Record<'voiceTyping.backend', string>) => (
+	showVoiceTypingSettings(settings) && settings['voiceTyping.backend'] === backend
+);
 
 const show3rdPartySyncSettings = (Setting: typeof SettingType) => {
 	return !Setting.value('isJoplinCloudWebApp');
@@ -2519,7 +2522,70 @@ const builtInMetadata = (Setting: typeof SettingType) => {
 			appTypes: [AppType.Mobile],
 			description: () => _('Leave it blank to download the language files from the default website'),
 			label: () => _('Voice typing language files (URL)'),
+			show: showVoiceTypingBackendSettings('local'),
+			section: 'note',
+		},
+
+		// A new key rather than reviving 'voiceTyping.preferredProvider', whose stored values
+		// ('vosk', 'whisper-tiny') name models rather than where transcription happens.
+		'voiceTyping.backend': {
+			value: 'local',
+			type: SettingItemType.String,
+			public: true,
+			appTypes: [AppType.Mobile],
+			isEnum: true,
+			label: () => _('Voice typing: Transcription'),
+			description: () => _('"Remote server" sends recorded audio to an OpenAI-compatible transcription server instead of transcribing it on this device.'),
 			show: showVoiceTypingSettings,
+			section: 'note',
+			options: () => ({
+				'local': _('On this device'),
+				'remote': _('Remote server'),
+			}),
+		},
+
+		'voiceTyping.remote.baseUrl': {
+			value: '',
+			type: SettingItemType.String,
+			public: true,
+			appTypes: [AppType.Mobile],
+			label: () => _('Voice typing: Server URL'),
+			description: () => _('The base URL of an OpenAI-compatible API, for example https://example.com/v1. Must start with https://.'),
+			show: showVoiceTypingBackendSettings('remote'),
+			section: 'note',
+		},
+
+		'voiceTyping.remote.apiKey': {
+			value: '',
+			type: SettingItemType.String,
+			public: true,
+			secure: true,
+			appTypes: [AppType.Mobile],
+			label: () => _('Voice typing: API key'),
+			show: showVoiceTypingBackendSettings('remote'),
+			section: 'note',
+		},
+
+		// Rendered by a custom component on the config screen, which can load the available models.
+		'voiceTyping.remote.model': {
+			value: '',
+			type: SettingItemType.String,
+			public: true,
+			appTypes: [AppType.Mobile],
+			label: () => _('Voice typing: Model'),
+			description: () => _('Leave it blank to use the server\'s default model.'),
+			show: showVoiceTypingBackendSettings('remote'),
+			section: 'note',
+		},
+
+		'voiceTyping.remote.language': {
+			value: '',
+			type: SettingItemType.String,
+			public: true,
+			appTypes: [AppType.Mobile],
+			label: () => _('Voice typing: Language'),
+			description: () => _('A language code, for example "sv" or "en". Leave it blank to let the server detect the language.'),
+			show: showVoiceTypingBackendSettings('remote'),
 			section: 'note',
 		},
 

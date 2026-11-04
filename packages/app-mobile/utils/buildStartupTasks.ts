@@ -96,6 +96,7 @@ import shim from '@joplin/lib/shim';
 import { Platform } from 'react-native';
 import VoiceTyping from '../services/voiceTyping/VoiceTyping';
 import whisper from '../services/voiceTyping/whisper';
+import whisperRemote from '../services/voiceTyping/whisperRemote';
 import PerFolderSortOrderService from '@joplin/lib/services/sortOrder/PerFolderSortOrderService';
 import getConflictFolderId from '@joplin/lib/models/utils/getConflictFolderId';
 const mobileConfig = require('@joplin/mobile-config').default;
@@ -370,7 +371,7 @@ const buildStartupTasks = (
 		await migratePpk();
 	});
 	addTask('buildStartupTasks/set up voice typing', async () => {
-		VoiceTyping.initialize([whisper]);
+		VoiceTyping.initialize([whisper, whisperRemote]);
 	});
 	addTask('buildStartupTasks/load folders', async () => {
 		await refreshFolders(dispatch, '');

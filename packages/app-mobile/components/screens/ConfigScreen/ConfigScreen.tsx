@@ -37,6 +37,7 @@ import EnablePluginSupportPage from './plugins/EnablePluginSupportPage';
 import getVersionInfoText from '../../../utils/getVersionInfoText';
 import JoplinCloudConfig, { emailToNoteDescription, emailToNoteLabel } from './JoplinCloudConfig';
 import NoteLockConfig from './NoteLockConfig';
+import VoiceTypingRemoteConfig, { searchText as voiceTypingRemoteConfigSearchText } from './VoiceTypingRemoteConfig';
 import isNoteLockEnabled from '@joplin/lib/services/noteLock/isNoteLockEnabled';
 import shim from '@joplin/lib/shim';
 import SettingsToggle from './SettingsToggle';
@@ -480,8 +481,26 @@ class ConfigScreenComponent extends BaseScreenComponent<ConfigScreenProps, Confi
 				}
 			}
 
-			const settingComp = this.settingToComponent(md.key, settings[md.key]);
 			const relatedText = [md.label?.() ?? '', md.description?.(AppType.Mobile) ?? ''];
+
+			if (md.key === 'voiceTyping.remote.model') {
+				addSettingComponent(
+					<VoiceTypingRemoteConfig
+						key='voice-typing-remote-config'
+						baseUrl={settings['voiceTyping.remote.baseUrl']}
+						apiKey={settings['voiceTyping.remote.apiKey']}
+						model={settings[md.key]}
+						styles={this.styles()}
+						themeId={this.props.themeId}
+						updateSettingValue={this.setSettingValue}
+					/>,
+					[...relatedText, ...voiceTypingRemoteConfigSearchText()],
+					md,
+				);
+				continue;
+			}
+
+			const settingComp = this.settingToComponent(md.key, settings[md.key]);
 			addSettingComponent(
 				settingComp,
 				relatedText,

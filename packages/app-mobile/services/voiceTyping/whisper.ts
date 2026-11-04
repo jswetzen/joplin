@@ -195,7 +195,7 @@ const modelLocalFilepath = () => {
 };
 
 const whisper: VoiceTypingProvider = {
-	supported: () => Platform.OS === 'android' && Setting.value('buildFlag.voiceTypingEnabled'),
+	supported: () => Platform.OS === 'android' && Setting.value('buildFlag.voiceTypingEnabled') && Setting.value('voiceTyping.backend') !== 'remote',
 	requiresModelDownload: true,
 	modelLocalFilepath: modelLocalFilepath,
 	getDownloadUrl: (locale) => {
