@@ -78,7 +78,7 @@ android {
     buildToolsVersion rootProject.ext.buildToolsVersion
     compileSdk rootProject.ext.compileSdkVersion
 
-    namespace "net.cozic.joplin.fork"
+    namespace "net.cozic.joplin"
     defaultConfig {
         applicationId "net.cozic.joplin.fork"
         minSdkVersion rootProject.ext.minSdkVersion
